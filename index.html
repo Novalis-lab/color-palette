@@ -140,7 +140,7 @@ h2::before{content:counter(card,decimal-leading-zero) " /";display:block;margin-
   font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s,box-shadow .2s}
 .rotate:hover{background:rgba(var(--accent-rgb),.25);box-shadow:0 0 14px 1px rgba(var(--accent-rgb),.45)}
 .stage-outfit{position:relative;border-radius:var(--radius,8px);overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.12)}
-.stage-outfit{background:radial-gradient(circle at 50% 35%,#f6f3ee,#d9d4cb 75%)}
+.stage-outfit{background:#F3EFE8;background-image:radial-gradient(circle at 30% 20%,rgba(255,255,255,.7),transparent 60%),repeating-linear-gradient(0deg,rgba(0,0,0,.018) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(0,0,0,.018) 0 1px,transparent 1px 3px)}
 .stage-outfit svg{display:block;width:100%;max-width:320px;height:auto;margin:0 auto}
 .stage-outfit svg .wear{transition:fill .45s}
 .outfit-list{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
@@ -246,7 +246,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     </section>
 
     <section class="card">
-      <h2>服で見てみる</h2>
+      <h2>平置きコーデで見てみる</h2>
       <div class="outfit-tools">
         <div class="seg2" id="style">
           <button type="button" data-v="pants">パンツ</button>
@@ -254,7 +254,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
         </div>
         <button class="rotate" id="rotate" type="button">🔀 色の当て方をかえる</button>
       </div>
-      <div class="stage-outfit"><svg id="outfit" viewBox="0 0 300 440" role="img" aria-label="提案の配色で着せたコーディネートの見本"></svg></div>
+      <div class="stage-outfit"><svg id="outfit" viewBox="0 0 300 440" role="img" aria-label="提案の配色で組んだ平置きコーデの見本"></svg></div>
       <ul class="outfit-list" id="outfit-list"></ul>
       <div class="tips" id="tips"></div>
     </section>
@@ -431,18 +431,18 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
 
   /* ---------- 服で見てみる ---------- */
   var ROLES = [
-    { id: "outer",   name: "アウター" },
     { id: "tops",    name: "トップス" },
     { id: "bottoms", name: "ボトムス" },
     { id: "shoes",   name: "靴" },
-    { id: "bag",     name: "バッグ" }
+    { id: "bag",     name: "バッグ" },
+    { id: "hat",     name: "帽子" }
   ];
   var outfit = { style: "pants", off: 0 };
   try { var so = JSON.parse(localStorage.getItem("novalis-color-outfit") || "{}"); if (so.style === "skirt") outfit.style = "skirt"; } catch (e) {}
   function saveOutfit() { try { localStorage.setItem("novalis-color-outfit", JSON.stringify({ style: outfit.style })); } catch (e) {} }
 
-  // おすすめの当て方：トップス＝いちばん明るい色、ボトムス＝いちばん濃い色、アウター＝もとの色、
-  // バッグ＝もとの色からいちばん色味がちがう色（差し色）、靴＝のこりの色
+  // おすすめの当て方：トップス＝えらんだメインの色、ボトムス＝いちばん濃い色、靴＝次に濃い色、
+  // バッグ＝メインの色からいちばん色味がちがう色（差し色）、帽子＝のこりの色
   function recommended() {
     var idx = palette.map(function (c, i) { return i; });
     var lum = function (i) { return luminance(palette[i].hex); };
@@ -450,54 +450,55 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     var used = {}, pick = function (i) { used[i] = 1; return i; };
     var free = function () { return idx.filter(function (i) { return !used[i]; }); };
     var baseI = palette.findIndex(function (c) { return c.hex === state.base; }); if (baseI < 0) baseI = 0;
-    var outer = pick(baseI);
-    var tops = pick(free().sort(function (x, y) { return lum(y) - lum(x); })[0]);
+    var tops = pick(baseI);
     var bottoms = pick(free().sort(function (x, y) { return lum(x) - lum(y); })[0]);
     var hb = hue(baseI), dh = function (i) { var d = Math.abs(hue(i) - hb) % 360; return d > 180 ? 360 - d : d; };
     var bag = pick(free().sort(function (x, y) { return dh(y) - dh(x); })[0]);
-    var shoes = pick(free()[0]);
-    return [outer, tops, bottoms, shoes, bag];
+    var shoes = pick(free().sort(function (x, y) { return lum(x) - lum(y); })[0]);
+    var hat = pick(free()[0]);
+    return [tops, bottoms, shoes, bag, hat];
   }
-  function shade(hex, k) {   // 影の色（少し暗く）
+  function shade(hex, k) {   // 少し暗い色（縫い目やふちどり用）
     var c = hexToRgb(hex); return rgbToHex(c[0] * (1 - k), c[1] * (1 - k), c[2] * (1 - k));
   }
 
   function renderOutfit() {
     var order = recommended();
-    // 「色の当て方をかえる」を押すたびに、服ごとの色を1つずつずらす
+    // 「色の当て方をかえる」を押すたびに、アイテムごとの色を1つずつずらす
     var map = ROLES.map(function (r, i) { return order[(i + outfit.off) % order.length]; });
     var col = {}; ROLES.forEach(function (r, i) { col[r.id] = palette[map[i]].hex; });
-    // シンプルなファッションイラスト風（約11頭身・線は最小限のフラットな塗り）
-    var skin = "#E8CFB8", hair = "#2A221F", line = 'stroke="rgba(0,0,0,.1)" stroke-width="1" stroke-linejoin="round"';
-    var w = function (id, d) { return '<path class="wear" d="' + d + '" fill="' + col[id] + '" ' + line + "/>"; };
-    var g = "";
-    g += '<ellipse cx="150" cy="416" rx="40" ry="4.5" fill="rgba(0,0,0,.12)"/>';
-    // 首・頭・髪
-    g += '<path d="M146 58 H154 L155 84 H145 Z" fill="' + skin + '"/>';
-    g += '<ellipse cx="150" cy="46" rx="12.5" ry="15.5" fill="' + skin + '"/>';
-    g += '<path d="M136 48 Q135 27 150 27 Q165 27 164 48 L165 61 Q159 58 159 42 Q150 36 141 42 Q141 58 135 61 Z" fill="' + hair + '"/>';
+    // 平置きコーデ：中央に上から トップス・ボトムス・靴、右に小物（差し色）を小さく
+    var item = function (id, d) { return '<path class="wear" d="' + d + '" fill="' + col[id] + '" filter="url(#lay)"/>'; };
+    var det = function (id, d, k) { return '<path d="' + d + '" fill="none" stroke="' + shade(col[id], k || .18) + '" stroke-width="1.6" stroke-linecap="round"/>'; };
+    var g = '<defs><filter id="lay" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".14"/></filter></defs>';
+
+    // トップス（Tシャツ）
+    g += item("tops", "M88 34 L64 44 L38 74 L58 96 L70 84 L70 156 Q115 162 160 156 L160 84 L172 96 L192 74 L166 44 L142 34 Q115 52 88 34 Z");
+    g += det("tops", "M90 36 Q115 54 140 36");
+
+    // ボトムス（パンツ／スカート）
     if (outfit.style === "pants") {
-      g += w("bottoms", "M135 194 H165 L169 212 L165 406 H153 L150 236 L147 406 H135 L131 212 Z");
+      g += item("bottoms", "M74 182 H156 L166 340 H124 L115 226 L106 340 H64 Z");
+      g += det("bottoms", "M74 194 H156 M115 194 V226");
     } else {
-      g += '<path d="M139 290 H148 L147 406 H141 Z" fill="' + skin + '"/><path d="M152 290 H161 L159 406 H153 Z" fill="' + skin + '"/>';
-      g += w("bottoms", "M137 194 H163 L178 304 Q150 310 122 304 Z");
+      g += item("bottoms", "M84 182 H146 L176 306 Q115 318 54 306 Z");
+      g += det("bottoms", "M84 194 H146");
     }
-    // 靴（先のとがったパンプス）
-    g += w("shoes", "M135 403 H148 L149 412 L127 413 Q126 406 135 403 Z");
-    g += w("shoes", "M152 403 H165 Q174 406 173 413 L151 412 Z");
-    // トップス
-    g += w("tops", "M134 84 H166 L163 196 H137 Z");
-    // アウター（細身のジャケット）と細い袖
-    g += w("outer", "M117 90 L110 94 L101 206 L109 208 L118 122 Z");
-    g += w("outer", "M183 90 L190 94 L199 206 L191 208 L182 122 Z");
-    g += w("outer", "M143 84 L117 90 L114 230 L147 230 L144 150 Z");
-    g += w("outer", "M157 84 L183 90 L186 230 L153 230 L156 150 Z");
-    g += '<path d="M143 84 L139 124 L145 150 M157 84 L161 124 L155 150" fill="none" stroke="' + shade(col.outer, .25) + '" stroke-width="1.2"/>';
-    // 手
-    g += '<ellipse cx="105" cy="212" rx="4" ry="5.5" fill="' + skin + '"/><ellipse cx="195" cy="212" rx="4" ry="5.5" fill="' + skin + '"/>';
-    // バッグ（小ぶりのハンドバッグ）
-    g += '<path d="M191 210 Q199 196 207 210" fill="none" stroke="' + shade(col.bag, .3) + '" stroke-width="2" stroke-linecap="round"/>';
-    g += w("bag", "M187 210 H211 L209 232 H189 Z");
+
+    // 靴（横から見たスニーカーを2つ）
+    var shoe = function (x) {
+      return item("shoes", "M" + x + " 392 V378 Q" + (x + 2) + " 366 " + (x + 14) + " 366 L" + (x + 30) + " 368 Q" + (x + 44) + " 371 " + (x + 54) + " 382 Q" + (x + 58) + " 392 " + (x + 50) + " 392 Z") +
+        '<path d="M' + x + " 388 H" + (x + 54) + '" stroke="rgba(255,255,255,.75)" stroke-width="3"/>';
+    };
+    g += shoe(62) + shoe(116);
+
+    // 小物（差し色）：帽子とバッグを右に小さく
+    g += '<text x="246" y="34" text-anchor="middle" font-size="9" letter-spacing="1.5" fill="#9a958c" style="font-family:var(--font-en);font-weight:700">ACCENT</text>';
+    g += item("hat", "M222 86 Q222 58 246 58 Q270 58 270 86 Z");
+    g += '<ellipse class="wear" cx="246" cy="88" rx="34" ry="8" fill="' + col.hat + '" filter="url(#lay)"/>';
+    g += det("hat", "M224 78 H268", .2);
+    g += '<path d="M232 226 Q246 196 260 226" fill="none" stroke="' + shade(col.bag, .25) + '" stroke-width="4" stroke-linecap="round"/>';
+    g += item("bag", "M220 226 H272 L268 270 Q246 274 224 270 Z");
     $("outfit").innerHTML = g;
 
     // どの服がどの色か（タップでコピー）
@@ -507,8 +508,8 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     }).join("");
 
     // コーデのコツ（面積の割合の目安）
-    var base = col.bottoms, main = col.outer, acc = col.bag;
-    $("tips").innerHTML = "<b>コーデのコツ</b>：面積の広い服（ボトムス・トップス）に落ち着いた色、小物（バッグ・靴）に差し色を使うと、まとまりやすくなります。目安は <b>ベース 70%・メイン 25%・アクセント 5%</b>。" +
+    var base = col.bottoms, main = col.tops, acc = col.bag;
+    $("tips").innerHTML = "<b>コーデのコツ</b>：面積の大きいトップス・ボトムスでベースとメインの色を決めて、バッグや帽子などの小物に差し色を入れると、まとまりやすくなります。目安は <b>ベース 70%・メイン 25%・アクセント 5%</b>。" +
       '<div class="ratio" aria-hidden="true"><span style="flex:70;background:' + base + '"></span><span style="flex:25;background:' + main + '"></span><span style="flex:5;background:' + acc + '"></span></div>';
 
     [].forEach.call($("style").children, function (b) { b.setAttribute("aria-pressed", b.dataset.v === outfit.style ? "true" : "false"); });
