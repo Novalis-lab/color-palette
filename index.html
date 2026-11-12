@@ -141,7 +141,15 @@ h2::before{content:counter(card,decimal-leading-zero) " /";display:block;margin-
   font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s,box-shadow .2s}
 .rotate:hover{background:rgba(var(--accent-rgb),.25);box-shadow:0 0 14px 1px rgba(var(--accent-rgb),.45)}
 .stage-outfit{position:relative;border-radius:var(--radius,8px);overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.12)}
-.stage-outfit{background:#F3EFE8;background-image:radial-gradient(circle at 30% 20%,rgba(255,255,255,.7),transparent 60%),repeating-linear-gradient(0deg,rgba(0,0,0,.018) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(0,0,0,.018) 0 1px,transparent 1px 3px)}
+/* 平置きの背景（白い服も黒い服も見えるよう、中間の明るさに） */
+.stage-outfit.bg-greige{background:#BDB5A8;background-image:radial-gradient(circle at 30% 20%,rgba(255,255,255,.28),transparent 60%),repeating-linear-gradient(0deg,rgba(0,0,0,.025) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(0,0,0,.025) 0 1px,transparent 1px 3px)}
+.stage-outfit.bg-wood{background:#A27B55;background-image:radial-gradient(circle at 30% 20%,rgba(255,255,255,.18),transparent 60%),
+  repeating-linear-gradient(90deg,rgba(0,0,0,.16) 0 2px,transparent 2px 74px),
+  repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0 9px,rgba(0,0,0,.03) 9px 17px,transparent 17px 31px)}
+.stage-outfit.bg-dark{background:#2B2C31;background-image:radial-gradient(circle at 30% 20%,rgba(255,255,255,.08),transparent 60%)}
+.bg-pick{position:absolute;right:10px;bottom:10px;z-index:2;display:flex;gap:6px;padding:5px;border-radius:999px;background:rgba(11,11,13,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.bg-pick button{width:24px;height:24px;padding:0;border:0;border-radius:50%;cursor:pointer;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
+.bg-pick button[aria-pressed="true"]{box-shadow:0 0 0 2px #0b0b0d,0 0 0 4px #f2f0ea}
 .stage-outfit svg{display:block;width:100%;max-width:320px;height:auto;margin:0 auto}
 .stage-outfit svg .wear{transition:fill .45s}
 .outfit-list{list-style:none;margin:16px 0 0;padding:0;border-top:1px solid var(--line)}
@@ -273,7 +281,14 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
         </div>
         <button class="rotate" id="rotate" type="button">🔀 色の当て方をかえる</button>
       </div>
-      <div class="stage-outfit"><svg id="outfit" viewBox="0 0 300 440" role="img" aria-label="提案の配色で組んだ平置きコーデの見本"></svg></div>
+      <div class="stage-outfit bg-greige" id="stage-outfit">
+        <div class="bg-pick" id="bg-pick" role="group" aria-label="平置きの背景">
+          <button type="button" data-bg="greige" style="background:#BDB5A8" aria-label="背景：グレージュ"></button>
+          <button type="button" data-bg="wood" style="background:#A27B55" aria-label="背景：木の床"></button>
+          <button type="button" data-bg="dark" style="background:#2B2C31" aria-label="背景：ダーク"></button>
+        </div>
+        <svg id="outfit" viewBox="0 0 300 440" role="img" aria-label="提案の配色で組んだ平置きコーデの見本"></svg>
+      </div>
       <ul class="outfit-list" id="outfit-list" aria-label="アイテムごとの色"></ul>
       <div class="outfit-actions">
         <span class="hint">アイテムごとに、提案の色と黒から好きな色をえらべます。色の名前は、近い色の名前の目安です。</span>
@@ -489,9 +504,13 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     { id: "hat",     name: "帽子" }
   ];
   var BLACK = "#1A1A1A";   // どのアイテムにも選べる、固定の黒
-  var outfit = { style: "pants", off: 0, custom: {} };   // custom：アイテムごとに自分でえらんだ色（提案の何色目か）
-  try { var so = JSON.parse(localStorage.getItem("novalis-color-outfit") || "{}"); if (so.style === "skirt") outfit.style = "skirt"; } catch (e) {}
-  function saveOutfit() { try { localStorage.setItem("novalis-color-outfit", JSON.stringify({ style: outfit.style })); } catch (e) {} }
+  var outfit = { style: "pants", off: 0, custom: {}, bg: "greige" };   // custom：アイテムごとに自分でえらんだ色（提案の何色目か）
+  try {
+    var so = JSON.parse(localStorage.getItem("novalis-color-outfit") || "{}");
+    if (so.style === "skirt") outfit.style = "skirt";
+    if (["greige", "wood", "dark"].indexOf(so.bg) >= 0) outfit.bg = so.bg;
+  } catch (e) {}
+  function saveOutfit() { try { localStorage.setItem("novalis-color-outfit", JSON.stringify({ style: outfit.style, bg: outfit.bg })); } catch (e) {} }
 
   // おすすめの当て方：トップス＝えらんだメインの色、ボトムス＝いちばん濃い色、靴＝次に濃い色、
   // バッグ＝メインの色からいちばん色味がちがう色（差し色）、帽子＝のこりの色
@@ -526,7 +545,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     // 平置きコーデ：中央に上から トップス・ボトムス・靴、右に小物（差し色）を小さく
     var item = function (id, d) { return '<path class="wear" data-role="' + id + '" d="' + d + '" fill="' + col[id] + '" filter="url(#lay)"/>'; };
     var det = function (id, d, k) { return '<path d="' + d + '" fill="none" stroke="' + shade(col[id], k || .18) + '" stroke-width="1.6" stroke-linecap="round"/>'; };
-    var g = '<defs><filter id="lay" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".14"/></filter></defs>';
+    var g = '<defs><filter id="lay" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".28"/></filter></defs>';
 
     // トップス（Tシャツ）
     g += item("tops", "M88 34 L64 44 L38 74 L58 96 L70 84 L70 156 Q115 162 160 156 L160 84 L172 96 L192 74 L166 44 L142 34 Q115 52 88 34 Z");
@@ -549,7 +568,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     g += shoe(62) + shoe(116);
 
     // 小物（差し色）：帽子とバッグを右に小さく
-    g += '<text x="246" y="34" text-anchor="middle" font-size="9" letter-spacing="1.5" fill="#9a958c" style="font-family:var(--font-en);font-weight:700">ACCENT</text>';
+    g += '<text x="246" y="34" text-anchor="middle" font-size="9" letter-spacing="1.5" fill="' + (outfit.bg === "greige" ? "#6f685d" : "rgba(255,255,255,.6)") + '" style="font-family:var(--font-en);font-weight:700">ACCENT</text>';
     g += item("hat", "M222 86 Q222 58 246 58 Q270 58 270 86 Z");
     g += '<ellipse class="wear" data-role="hat" cx="246" cy="88" rx="34" ry="8" fill="' + col.hat + '" filter="url(#lay)"/>';
     g += det("hat", "M224 78 H268", .2);
@@ -577,6 +596,15 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
 
     [].forEach.call($("style").children, function (b) { b.setAttribute("aria-pressed", b.dataset.v === outfit.style ? "true" : "false"); });
   }
+  function paintBg() {
+    $("stage-outfit").className = "stage-outfit bg-" + outfit.bg;
+    [].forEach.call($("bg-pick").children, function (b) { b.setAttribute("aria-pressed", b.dataset.bg === outfit.bg ? "true" : "false"); });
+  }
+  $("bg-pick").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    outfit.bg = b.dataset.bg; saveOutfit(); paintBg(); renderOutfit();
+  });
+  paintBg();
   $("style").addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return;
     outfit.style = b.dataset.v; saveOutfit(); renderOutfit();
