@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>色の組み合わせ提案｜配色を5色ですぐ作る｜novalis</title>
-<meta name="description" content="1色えらぶだけで、補色・類似色・トライアドなど6種類の組み合わせから5色の配色を提案。タップで色コードをコピー、見本と文字の読みやすさのチェックつき。無料・登録不要。">
+<meta name="description" content="メインの色を1色えらぶだけで、補色・類似色・トライアドなど6種類の組み合わせから5色の配色を提案。日本語の色名つき、平置きコーデで服の色合わせも見られます。無料・登録不要。">
 <link rel="canonical" href="https://novalis-lab.github.io/color-palette/">
 <meta name="theme-color" content="#0b0b0d">
 <meta property="og:type" content="website">
@@ -12,7 +12,7 @@
 <meta property="og:locale" content="ja_JP">
 <meta property="og:url" content="https://novalis-lab.github.io/color-palette/">
 <meta property="og:title" content="色の組み合わせ提案｜1色から5色の配色をすぐ作る">
-<meta property="og:description" content="1色えらぶだけで、相性のいい5色の配色を提案。タップで色コードをコピー、見本と読みやすさのチェックつき。">
+<meta property="og:description" content="メインの色を1色えらぶだけで、相性のいい5色の配色を提案。日本語の色名つき、平置きコーデで服の色合わせも見られます。">
 <meta property="og:image" content="https://novalis-lab.github.io/ogp.png?v=20261113">
 <meta name="twitter:card" content="summary_large_image">
 <!-- サイトのアイコン（novalis共通のロゴ） -->
@@ -75,7 +75,7 @@ h2::before{content:counter(card,decimal-leading-zero) " /";display:block;margin-
 .field+.field{margin-top:20px}
 .note{margin:12px 2px 0;font-size:12.5px;line-height:1.6;color:var(--sub)}
 
-/* ---------- もとの色 ---------- */
+/* ---------- メインの色 ---------- */
 .base-row{display:flex;gap:10px;align-items:stretch}
 .picker{position:relative;flex:0 0 72px;height:72px;border-radius:var(--radius,8px);background:var(--base);cursor:pointer;
   box-shadow:0 0 0 1px rgba(255,255,255,.25),0 0 22px 2px color-mix(in srgb,var(--base) 55%,transparent);transition:background .3s,box-shadow .3s}
@@ -152,24 +152,27 @@ h2::before{content:counter(card,decimal-leading-zero) " /";display:block;margin-
 .bg-pick button[aria-pressed="true"]{box-shadow:0 0 0 2px #0b0b0d,0 0 0 4px #f2f0ea}
 .stage-outfit svg{display:block;width:100%;max-width:320px;height:auto;margin:0 auto}
 .stage-outfit svg .wear{transition:fill .45s}
-.outfit-list{list-style:none;margin:16px 0 0;padding:0;border-top:1px solid var(--line)}
-.outfit-list li.pick{display:block;padding:12px 4px 24px;border-bottom:1px solid var(--line);border-radius:var(--radius,8px);transition:background .3s,box-shadow .3s}
-.outfit-list li.pick.flash{background:rgba(var(--accent-rgb),.14);box-shadow:inset 0 0 0 1px var(--accent)}
-.pick-name{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;font-size:12px;font-weight:700;line-height:1.3;color:var(--sub);letter-spacing:.08em}
-.pick-name small{font-family:var(--font-en);font-size:10px;color:var(--sub);letter-spacing:.02em}
-.pick-sw{display:grid;grid-template-columns:repeat(6,1fr);justify-items:center;gap:0}
-.pick-sw button{position:relative;flex:0 0 auto;width:38px;height:38px;padding:0;border:0;border-radius:50%;cursor:pointer;
-  box-shadow:0 0 0 1px rgba(255,255,255,.22);transition:transform .15s,box-shadow .2s}
-.pick-sw button:hover{transform:scale(1.08)}
-.pick-sw button.black{box-shadow:0 0 0 1px rgba(255,255,255,.35)}
-.pick-sw button::before{content:attr(data-name);position:absolute;left:50%;bottom:-17px;transform:translateX(-50%);white-space:nowrap;font-size:10px;font-weight:700;letter-spacing:-.02em;color:var(--sub);text-align:center}
-.pick-sw button[aria-pressed="true"]::before{color:var(--ink)}
-.pick-name em{font-style:normal;font-size:16px;font-weight:700;letter-spacing:0;color:var(--ink)}
-.sw .sw-name{display:block;text-align:center;font-family:var(--font);font-size:15px;font-weight:700;letter-spacing:0;line-height:1.25}
-.sw .sw-name small{display:block;margin-top:3px;font-family:var(--font-en);font-size:8.5px;opacity:.75;letter-spacing:.02em}
-.pick-sw button.black[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ink)}
-.pick-sw button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ink)}
-.pick-sw button[aria-pressed="true"]::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;font-size:16px;font-weight:800;color:var(--ck,#111)}
+/* ① アイテムのタブ */
+.item-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:14px}
+.item-tabs button{display:flex;flex-direction:column;align-items:center;gap:5px;min-height:62px;padding:8px 2px;border:1px solid var(--line);border-radius:var(--radius,8px);
+  background:transparent;color:var(--sub);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;transition:color .2s,border-color .2s,background .2s}
+.item-tabs button:hover{color:var(--ink);border-color:var(--accent)}
+.item-tabs button i{width:22px;height:22px;border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.3)}
+.item-tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--accent);background:rgba(var(--accent-rgb),.16);box-shadow:0 0 0 1px var(--accent)}
+/* ② えらんだアイテムの色 */
+.color-pick{margin-top:10px;padding:14px 12px 12px;border:1px solid var(--line);border-radius:var(--radius,8px);background:rgba(255,255,255,.03)}
+.cp-title{margin:0 0 12px;font-size:16px;font-weight:700}
+.cp-title b{color:var(--accent)}
+.cp-title small{margin-left:8px;font-family:var(--font-en);font-size:10px;color:var(--sub)}
+.cp-sw{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.cp-sw button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 0;border:0;background:transparent;color:var(--sub);font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+.cp-sw .dot{position:relative;width:44px;height:44px;border-radius:50%;background:var(--c);box-shadow:0 0 0 1px rgba(255,255,255,.25);transition:transform .15s,box-shadow .2s}
+.cp-sw button:hover .dot{transform:scale(1.08)}
+.cp-sw button[aria-pressed="true"]{color:var(--ink)}
+.cp-sw button[aria-pressed="true"] .dot{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--ink)}
+.cp-sw button[aria-pressed="true"] .dot::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;font-size:18px;font-weight:800;color:var(--ck)}
+.cp-sw .nm{white-space:nowrap;letter-spacing:-.02em}
+.stage-outfit svg .wear.sel{stroke:#fff;stroke-width:2.5;stroke-dasharray:6 4}
 .outfit-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
 .outfit-actions .hint{font-size:12.5px;color:var(--sub)}
 .reset{min-height:38px;padding:0 12px;border:1px solid var(--line);border-radius:var(--radius,8px);background:transparent;color:var(--sub);font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
@@ -213,7 +216,8 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
 
 @media (max-width:400px){
   .outfit-tools{flex-direction:column}
-  .pick-sw button{width:34px;height:34px}
+  .cp-sw .dot{width:38px;height:38px}
+  .item-tabs button{font-size:11.5px}
   .hex{font-size:16px;letter-spacing:0;padding:0 10px}
   .dice{font-size:12px;padding:0 10px}
   .base-row{gap:8px}
@@ -240,12 +244,12 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
   <header>
     <p class="kicker">COLOR PALETTE</p>
     <h1><span class="u-line">色の組み合わせ</span>提案</h1>
-    <p class="lead">1色えらぶだけで、相性のいい5色の配色をすぐ提案します。色をタップすると、色コードをコピーできます。</p>
+    <p class="lead">メインの色を1色えらぶだけで、相性のいい5色の配色をすぐ提案します。平置きコーデで、服の色合わせも見られます。</p>
   </header>
 
   <main>
     <section class="card">
-      <h2>もとの色をえらぶ</h2>
+      <h2>メインの色をえらぶ</h2>
       <div class="field">
         <div class="base-row">
           <label class="picker" title="色をえらぶ"><input type="color" id="picker" value="#4dabf7" aria-label="色をえらぶ"></label>
@@ -289,9 +293,14 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
         </div>
         <svg id="outfit" viewBox="0 0 300 440" role="img" aria-label="提案の配色で組んだ平置きコーデの見本"></svg>
       </div>
-      <ul class="outfit-list" id="outfit-list" aria-label="アイテムごとの色"></ul>
+      <!-- ① アイテムをえらぶ（絵のアイテムをタップしてもOK） → ② 色をえらぶ -->
+      <div class="item-tabs" id="item-tabs" role="tablist" aria-label="色を変えるアイテム"></div>
+      <div class="color-pick">
+        <p class="cp-title" id="cp-title"></p>
+        <div class="cp-sw" id="cp-sw" role="group"></div>
+      </div>
       <div class="outfit-actions">
-        <span class="hint">アイテムごとに、提案の色と黒から好きな色をえらべます。色の名前は、近い色の名前の目安です。</span>
+        <span class="hint">アイテムをえらんでから、色をタップ。色の名前は、近い色の名前の目安です。</span>
         <button class="reset hidden" id="reset-pick" type="button">↺ おすすめに戻す</button>
       </div>
       <div class="tips" id="tips"></div>
@@ -388,7 +397,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
   }
 
   /* ---------- 組み合わせ方 ---------- */
-  // 各色は [色相のずれ, 彩度の倍率, 明るさ（絶対値。null ならもとの色の明るさ＋ずれ）, 明るさのずれ, 役割]
+  // 各色は [色相のずれ, 彩度の倍率, 明るさ（絶対値。null ならメインの色の明るさ＋ずれ）, 明るさのずれ, 役割]
   var HARMONIES = [
     { id: "comp", name: "補色", desc: "<b>補色</b>：色相環で反対側の色。おたがいを引き立てる、メリハリのある組み合わせです。",
       make: function (h, s, l) { return [[h, s, l, "メイン"], [h, s, l + 20, "明るめ"], [h + 180, s, l, "補色"], [h + 180, s * 0.9, l - 16, "補色・濃いめ"], [h, s * 0.12, 95, "背景"]]; } },
@@ -427,7 +436,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     var hsl = rgbToHsl.apply(null, hexToRgb(state.base));
     var H = HARMONIES.filter(function (x) { return x.id === state.harmony; })[0];
     palette = H.make(hsl[0], hsl[1], hsl[2]).map(function (c, i) {
-      // もとの色そのものは、計算の丸めでずれないようにそのまま使う
+      // メインの色そのものは、計算の丸めでずれないようにそのまま使う
       var isBase = (H.id === "comp" || H.id === "triad" || H.id === "split" || H.id === "tetrad") ? i === 0 : (H.id === "analog" || H.id === "mono") ? i === 2 : false;
       var sat = clamp(c[1], 0, 100), lig = clamp(c[2], 6, 97);
       // ほかの色相の色は、蛍光色のようにギラつかないよう、鮮やかさと明るさに上限をつける
@@ -504,7 +513,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     { id: "hat",     name: "帽子" }
   ];
   var BLACK = "#1A1A1A";   // どのアイテムにも選べる、固定の黒
-  var outfit = { style: "pants", off: 0, custom: {}, bg: "greige" };   // custom：アイテムごとに自分でえらんだ色（提案の何色目か）
+  var outfit = { style: "pants", off: 0, custom: {}, bg: "greige", sel: "tops" };   // sel：色を変えるためにえらんでいるアイテム   // custom：アイテムごとに自分でえらんだ色（提案の何色目か）
   try {
     var so = JSON.parse(localStorage.getItem("novalis-color-outfit") || "{}");
     if (so.style === "skirt") outfit.style = "skirt";
@@ -543,7 +552,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     var hexOf = function (m) { return m === "black" ? BLACK : palette[m].hex; };
     var col = {}; ROLES.forEach(function (r, i) { col[r.id] = hexOf(map[i]); });
     // 平置きコーデ：中央に上から トップス・ボトムス・靴、右に小物（差し色）を小さく
-    var item = function (id, d) { return '<path class="wear" data-role="' + id + '" d="' + d + '" fill="' + col[id] + '" filter="url(#lay)"/>'; };
+    var item = function (id, d) { return '<path class="wear' + (id === outfit.sel ? " sel" : "") + '" data-role="' + id + '" d="' + d + '" fill="' + col[id] + '" filter="url(#lay)"/>'; };
     var det = function (id, d, k) { return '<path d="' + d + '" fill="none" stroke="' + shade(col[id], k || .18) + '" stroke-width="1.6" stroke-linecap="round"/>'; };
     var g = '<defs><filter id="lay" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".28"/></filter></defs>';
 
@@ -570,23 +579,27 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     // 小物（差し色）：帽子とバッグを右に小さく
     g += '<text x="246" y="34" text-anchor="middle" font-size="9" letter-spacing="1.5" fill="' + (outfit.bg === "greige" ? "#6f685d" : "rgba(255,255,255,.6)") + '" style="font-family:var(--font-en);font-weight:700">ACCENT</text>';
     g += item("hat", "M222 86 Q222 58 246 58 Q270 58 270 86 Z");
-    g += '<ellipse class="wear" data-role="hat" cx="246" cy="88" rx="34" ry="8" fill="' + col.hat + '" filter="url(#lay)"/>';
+    g += '<ellipse class="wear' + (outfit.sel === "hat" ? " sel" : "") + '" data-role="hat" cx="246" cy="88" rx="34" ry="8" fill="' + col.hat + '" filter="url(#lay)"/>';
     g += det("hat", "M224 78 H268", .2);
     g += '<path d="M232 226 Q246 196 260 226" fill="none" stroke="' + shade(col.bag, .25) + '" stroke-width="4" stroke-linecap="round"/>';
     g += item("bag", "M220 226 H272 L268 270 Q246 274 224 270 Z");
     $("outfit").innerHTML = g;
 
-    // アイテムごとに、提案の5色から色をえらぶ
-    $("outfit-list").innerHTML = ROLES.map(function (r, i) {
+    // ① アイテムのタブ（今の色の丸つき）
+    $("item-tabs").innerHTML = ROLES.map(function (r, i) {
       var cur = hexOf(map[i]);
-      return '<li class="pick" id="pick-' + r.id + '"><span class="pick-name">' + r.name + '<em>' + colorName(cur) + "</em><small>" + cur + '</small></span><span class="pick-sw" role="group" aria-label="' + r.name + 'の色">' +
-        palette.map(function (c, j) {
-          var nm = colorName(c.hex);
-          return '<button type="button" data-role="' + r.id + '" data-j="' + j + '" data-name="' + nm + '" style="background:' + c.hex + ";--ck:" + readableOn(c.hex) + '" aria-pressed="' + (j === map[i]) + '" aria-label="' + r.name + "を " + nm + "（" + c.hex + '）にする"></button>';
-        }).join("") +
-        '<button type="button" class="black" data-role="' + r.id + '" data-j="black" data-name="黒" style="background:' + BLACK + ';--ck:#fff" aria-pressed="' + (map[i] === "black") + '" aria-label="' + r.name + 'を 黒 にする"></button>' +
-        "</span></li>";
+      return '<button type="button" role="tab" data-role="' + r.id + '" aria-selected="' + (r.id === outfit.sel) + '"><i style="background:' + cur + '"></i>' + r.name + "</button>";
     }).join("");
+    // ② えらんでいるアイテムの色（提案の5色＋黒）
+    var si = ROLES.findIndex(function (r) { return r.id === outfit.sel; });
+    var selCur = hexOf(map[si]);
+    $("cp-title").innerHTML = "<b>" + ROLES[si].name + "</b>の色：" + colorName(selCur) + "<small>" + selCur + "</small>";
+    $("cp-sw").setAttribute("aria-label", ROLES[si].name + "の色");
+    $("cp-sw").innerHTML = palette.map(function (c, j) {
+      var nm = colorName(c.hex);
+      return '<button type="button" data-j="' + j + '" style="--c:' + c.hex + ";--ck:" + readableOn(c.hex) + '" aria-pressed="' + (j === map[si]) + '" aria-label="' + ROLES[si].name + "を " + nm + "（" + c.hex + '）にする"><span class="dot"></span><span class="nm">' + nm + "</span></button>";
+    }).join("") +
+      '<button type="button" data-j="black" style="--c:' + BLACK + ';--ck:#fff" aria-pressed="' + (map[si] === "black") + '" aria-label="' + ROLES[si].name + 'を 黒 にする"><span class="dot"></span><span class="nm">黒</span></button>';
     $("reset-pick").classList.toggle("hidden", Object.keys(outfit.custom).length === 0);
 
     // コーデのコツ（面積の割合の目安）
@@ -611,18 +624,18 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
   });
   $("rotate").addEventListener("click", function () { outfit.off = (outfit.off + 1) % ROLES.length; outfit.custom = {}; renderOutfit(); });
   $("reset-pick").addEventListener("click", function () { outfit.custom = {}; outfit.off = 0; renderOutfit(); });
-  $("outfit-list").addEventListener("click", function (e) {
-    var b = e.target.closest("button[data-role]"); if (!b) return;
-    outfit.custom[b.dataset.role] = b.dataset.j === "black" ? "black" : +b.dataset.j;
+  function selectItem(role) { outfit.sel = role; renderOutfit(); }
+  $("item-tabs").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-role]"); if (b) selectItem(b.dataset.role);
+  });
+  $("cp-sw").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-j]"); if (!b) return;
+    outfit.custom[outfit.sel] = b.dataset.j === "black" ? "black" : +b.dataset.j;
     renderOutfit();
   });
-  // 平置きの絵のアイテムをタップすると、そのアイテムの色えらびの行を光らせる
+  // 平置きの絵のアイテムをタップすると、そのアイテムをえらぶ
   $("outfit").addEventListener("click", function (e) {
-    var p = e.target.closest("[data-role]"); if (!p) return;
-    var row = $("pick-" + p.dataset.role); if (!row) return;
-    row.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    row.classList.remove("flash"); void row.offsetWidth; row.classList.add("flash");
-    setTimeout(function () { row.classList.remove("flash"); }, 1400);
+    var p = e.target.closest("[data-role]"); if (p) selectItem(p.dataset.role);
   });
 
   /* ---------- 入力 ---------- */
