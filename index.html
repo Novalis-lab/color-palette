@@ -86,6 +86,11 @@ h2::before{content:counter(card,decimal-leading-zero) " /";display:block;margin-
 .cur-hex{display:block;font-family:var(--font-en);font-size:11px;color:var(--sub);letter-spacing:.04em}
 .current .dice{height:64px}
 /* 色名つきの30色 */
+.fam-tabs{display:flex;gap:6px;overflow-x:auto;margin:0 0 12px;padding-bottom:4px;scrollbar-width:none}
+.fam-tabs::-webkit-scrollbar{display:none}
+.fam-tabs button{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--sub);font:inherit;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer}
+.fam-tabs button i{width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.3)}
+.fam-tabs button[aria-selected="true"]{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
 .presets{display:grid;grid-template-columns:repeat(6,1fr);gap:10px 2px}
 .presets button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:2px 0;border:0;background:transparent;color:var(--sub);
   font:inherit;font-size:10.5px;font-weight:700;letter-spacing:-.03em;white-space:nowrap;cursor:pointer}
@@ -290,7 +295,8 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
       </div>
       <!-- 色名つきの30色から、タップでえらぶ -->
       <div class="field">
-        <span class="lbl">色をえらぶ（タップ）</span>
+        <span class="lbl">色をえらぶ（系統 → 色をタップ）</span>
+        <div class="fam-tabs" id="fam-tabs" role="tablist" aria-label="色の系統"></div>
         <div class="presets" id="presets" role="group" aria-label="メインの色"></div>
       </div>
       <!-- もっと細かくえらぶ（カラーピッカー・色コード） -->
@@ -302,10 +308,6 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
         </div>
         <p class="note">左の四角をタップするとカラーピッカーが開きます。色コード（#4DABF7 のような形）を入れてもOKです。</p>
       </details>
-      <div class="field">
-        <span class="lbl">雰囲気からえらぶ</span>
-        <div class="chips" id="moods"></div>
-      </div>
       <div class="field">
         <span class="lbl">組み合わせ方</span>
         <div class="harmony" id="harmony"></div>
@@ -417,7 +419,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     ["白", "#FFFFFF"], ["生成り", "#F7F3E8"], ["クリーム", "#F7EBC3"], ["ベージュ", "#E8D3B0"], ["薄グレー", "#D3D3D3"],
     ["グレー", "#9E9E9E"], ["墨色", "#3F3F3F"], ["黒", "#1A1A1A"],
     ["赤", "#E60033"], ["コーラル", "#F2706B"], ["朱色", "#EB6101"], ["珊瑚色", "#F5B1AA"], ["桃色", "#F09199"], ["ピンク", "#F4A7B9"],
-    ["桜色", "#FCE4EC"], ["ローズ", "#DE5A8A"], ["えんじ", "#B94047"], ["ワイン", "#7B2D3F"],
+    ["桜色", "#FCE4EC"], ["ラベンダー", "#E3DAF2"], ["ぶどう色", "#6C2C5F"], ["ローズ", "#DE5A8A"], ["えんじ", "#B94047"], ["ワイン", "#7B2D3F"],
     ["オレンジ", "#F39800"], ["山吹色", "#F8B500"], ["からし色", "#C9A227"], ["黄色", "#FFE600"], ["レモン色", "#F3E651"],
     ["黄緑", "#B8D200"], ["若草色", "#C3D825"], ["抹茶色", "#C5C56A"], ["オリーブ", "#7F7F3A"], ["カーキ", "#A49A6B"],
     ["緑", "#3EB370"], ["深緑", "#005243"], ["ミント", "#A6E3C6"], ["青緑", "#00A497"],
@@ -456,14 +458,6 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     { id: "mono", name: "同じ色の\n濃淡", desc: "<b>同じ色の濃淡</b>：1つの色の明るさだけを変えた組み合わせ。統一感があり、上品にまとまります。",
       make: function (h, s, l) { return [[h, s, 18, "いちばん濃い"], [h, s, 34, "濃いめ"], [h, s, l, "メイン"], [h, s * 0.85, 72, "明るめ"], [h, s * 0.5, 94, "背景"]]; } }
   ];
-  var MOODS = [
-    { name: "ナチュラル", base: "#8A9A5B", h: "analog" },
-    { name: "ポップ", base: "#FF6B6B", h: "tetrad" },
-    { name: "大人っぽい", base: "#2F4858", h: "mono" },
-    { name: "やさしい", base: "#F4A6A6", h: "analog" },
-    { name: "クール", base: "#4DABF7", h: "split" },
-    { name: "レトロ", base: "#D9822B", h: "triad" }
-  ];
 
   /* ---------- 状態（最後にえらんだ色・組み合わせ方を端末に保存） ---------- */
   var state = { base: "#66A9E2", harmony: "comp" };   // 最初は30色の「空色」
@@ -495,7 +489,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     document.documentElement.style.setProperty("--base", state.base);
     $("cur-name").textContent = colorName(state.base);
     $("cur-hex").textContent = state.base;
-    [].forEach.call($("presets").children, function (b) { b.setAttribute("aria-pressed", b.dataset.hex.toUpperCase() === state.base ? "true" : "false"); });
+    renderPresets();
     $("picker").value = state.base.toLowerCase();
     if (document.activeElement !== $("hex")) $("hex").value = state.base;
     $("hex").classList.remove("bad");
@@ -516,10 +510,6 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     renderOutfit();
 
     [].forEach.call($("harmony").children, function (b) { b.setAttribute("aria-pressed", b.dataset.h === state.harmony ? "true" : "false"); });
-    [].forEach.call($("moods").children, function (b) {
-      var m = MOODS[+b.dataset.i];
-      b.setAttribute("aria-pressed", m.base === state.base && m.h === state.harmony ? "true" : "false");
-    });
   }
 
   /* ---------- コピー ---------- */
@@ -686,20 +676,40 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
   });
 
   /* ---------- メインの色：色名つきの30色 ---------- */
-  var PRESETS = ["赤", "コーラル", "朱色", "オレンジ", "山吹色", "黄色",
-                 "レモン色", "黄緑", "若草色", "抹茶色", "緑", "深緑",
-                 "ミント", "青緑", "水色", "空色", "青", "紺",
-                 "藤色", "すみれ色", "紫", "桃色", "ピンク", "えんじ",
-                 "ベージュ", "キャメル", "茶色", "カーキ", "グレー", "墨色"];
+  var FAMILIES = [
+    { name: "赤・ピンク", colors: ["赤", "コーラル", "珊瑚色", "桃色", "ピンク", "桜色", "ローズ", "えんじ", "ワイン"] },
+    { name: "オレンジ・黄", colors: ["朱色", "オレンジ", "山吹色", "からし色", "黄色", "レモン色", "クリーム"] },
+    { name: "緑", colors: ["黄緑", "若草色", "抹茶色", "オリーブ", "緑", "深緑", "ミント", "青緑"] },
+    { name: "青", colors: ["水色", "空色", "青", "瑠璃色", "藍色", "紺"] },
+    { name: "紫", colors: ["ラベンダー", "藤色", "すみれ色", "紫", "ぶどう色"] },
+    { name: "茶・ベージュ", colors: ["生成り", "ベージュ", "キャメル", "カーキ", "茶色", "こげ茶"] },
+    { name: "白・グレー・黒", colors: ["白", "薄グレー", "グレー", "墨色", "黒"] }
+  ];
   var PRESET_HEX = {};
   COLOR_NAMES.forEach(function (n) { PRESET_HEX[n[0]] = n[1]; });
-  $("presets").innerHTML = PRESETS.map(function (nm) {
-    var hex = PRESET_HEX[nm];
-    return '<button type="button" data-hex="' + hex + '" style="--c:' + hex + ";--ck:" + readableOn(hex) + '" aria-label="' + nm + "（" + hex + '）"><span class="dot"></span>' + nm + "</button>";
-  }).join("");
+  var famSel = 0;
+  function famOf(hex) {   // 今の色が入っている系統（なければ一番近い色名の系統）
+    var nm = colorName(hex);
+    for (var i = 0; i < FAMILIES.length; i++) if (FAMILIES[i].colors.indexOf(nm) >= 0) return i;
+    return famSel;
+  }
+  function renderPresets() {
+    $("fam-tabs").innerHTML = FAMILIES.map(function (f, i) {
+      return '<button type="button" role="tab" data-f="' + i + '" aria-selected="' + (i === famSel) + '"><i style="background:' + PRESET_HEX[f.colors[Math.floor(f.colors.length / 2)]] + '"></i>' + f.name + "</button>";
+    }).join("");
+    $("presets").innerHTML = FAMILIES[famSel].colors.map(function (nm) {
+      var hex = PRESET_HEX[nm];
+      return '<button type="button" data-hex="' + hex + '" style="--c:' + hex + ";--ck:" + readableOn(hex) + '" aria-pressed="' + (hex.toUpperCase() === state.base) + '" aria-label="' + nm + "（" + hex + '）"><span class="dot"></span>' + nm + "</button>";
+    }).join("");
+  }
+  $("fam-tabs").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-f]"); if (!b) return;
+    famSel = +b.dataset.f; renderPresets();
+  });
   $("presets").addEventListener("click", function (e) {
     var b = e.target.closest("button[data-hex]"); if (b) setBase(b.dataset.hex);
   });
+  famSel = famOf(state.base);
 
   /* ---------- 入力 ---------- */
   function setBase(hex) { state.base = hex.toUpperCase(); outfit.off = 0; outfit.custom = {}; save(); build(); }
@@ -721,12 +731,6 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
   $("harmony").addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return;
     state.harmony = b.dataset.h; outfit.off = 0; outfit.custom = {}; save(); build();
-  });
-  $("moods").innerHTML = MOODS.map(function (m, i) { return '<button type="button" data-i="' + i + '"><i style="background:' + m.base + '"></i>' + m.name + "</button>"; }).join("");
-  $("moods").addEventListener("click", function (e) {
-    var b = e.target.closest("button"); if (!b) return;
-    var m = MOODS[+b.dataset.i];
-    state.harmony = m.h; setBase(m.base);
   });
 
   build();
