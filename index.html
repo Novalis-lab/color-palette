@@ -143,12 +143,22 @@ h2::before{content:counter(card,decimal-leading-zero) " /";display:block;margin-
 .stage-outfit{background:#F3EFE8;background-image:radial-gradient(circle at 30% 20%,rgba(255,255,255,.7),transparent 60%),repeating-linear-gradient(0deg,rgba(0,0,0,.018) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(0,0,0,.018) 0 1px,transparent 1px 3px)}
 .stage-outfit svg{display:block;width:100%;max-width:320px;height:auto;margin:0 auto}
 .stage-outfit svg .wear{transition:fill .45s}
-.outfit-list{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.outfit-list li button{width:100%;padding:8px 1px 7px;letter-spacing:0;white-space:nowrap;border:1px solid var(--line);border-radius:var(--radius,8px);background:transparent;color:var(--ink);cursor:pointer;
-  font:inherit;font-size:12px;font-weight:700;line-height:1.3;transition:border-color .2s}
-.outfit-list li button:hover{border-color:var(--accent)}
-.outfit-list i{display:block;width:26px;height:26px;margin:0 auto 5px;border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
-.outfit-list small{display:block;margin-top:2px;font-family:var(--font-en);font-size:8.5px;font-weight:700;color:var(--sub);letter-spacing:0}
+.outfit-list{list-style:none;margin:16px 0 0;padding:0;border-top:1px solid var(--line)}
+.outfit-list li.pick{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);border-radius:var(--radius,8px);transition:background .3s,box-shadow .3s}
+.outfit-list li.pick.flash{background:rgba(var(--accent-rgb),.14);box-shadow:inset 0 0 0 1px var(--accent)}
+.pick-name{flex:0 0 74px;font-size:14px;font-weight:700;line-height:1.3}
+.pick-name small{display:block;font-family:var(--font-en);font-size:10px;color:var(--sub);letter-spacing:.02em}
+.pick-sw{flex:1 1 auto;display:flex;justify-content:space-between;gap:6px}
+.pick-sw button{position:relative;flex:0 0 auto;width:38px;height:38px;padding:0;border:0;border-radius:50%;cursor:pointer;
+  box-shadow:0 0 0 1px rgba(255,255,255,.22);transition:transform .15s,box-shadow .2s}
+.pick-sw button:hover{transform:scale(1.08)}
+.pick-sw button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ink)}
+.pick-sw button[aria-pressed="true"]::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;font-size:16px;font-weight:800;color:var(--ck,#111)}
+.outfit-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
+.outfit-actions .hint{font-size:12.5px;color:var(--sub)}
+.reset{min-height:38px;padding:0 12px;border:1px solid var(--line);border-radius:var(--radius,8px);background:transparent;color:var(--sub);font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.reset:hover{color:var(--accent);border-color:var(--accent)}
+.stage-outfit svg .wear{cursor:pointer}
 .tips{margin:14px 0 0;padding:12px 14px;border-radius:var(--radius,8px);background:rgba(255,255,255,.04);font-size:13.5px;line-height:1.75;color:var(--sub)}
 .tips b{color:var(--ink)}
 .ratio{display:flex;height:10px;margin:8px 0 4px;border-radius:999px;overflow:hidden}
@@ -187,7 +197,8 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
 
 @media (max-width:400px){
   .outfit-tools{flex-direction:column}
-  .outfit-list li button{font-size:11px}
+  .pick-name{flex-basis:62px;font-size:13px}
+  .pick-sw button{width:34px;height:34px}
   .hex{font-size:16px;letter-spacing:0;padding:0 10px}
   .dice{font-size:12px;padding:0 10px}
   .base-row{gap:8px}
@@ -255,7 +266,11 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
         <button class="rotate" id="rotate" type="button">🔀 色の当て方をかえる</button>
       </div>
       <div class="stage-outfit"><svg id="outfit" viewBox="0 0 300 440" role="img" aria-label="提案の配色で組んだ平置きコーデの見本"></svg></div>
-      <ul class="outfit-list" id="outfit-list"></ul>
+      <ul class="outfit-list" id="outfit-list" aria-label="アイテムごとの色"></ul>
+      <div class="outfit-actions">
+        <span class="hint">アイテムごとに、提案の色から好きな色をえらべます。</span>
+        <button class="reset hidden" id="reset-pick" type="button">↺ おすすめに戻す</button>
+      </div>
       <div class="tips" id="tips"></div>
     </section>
   </main>
@@ -437,7 +452,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     { id: "bag",     name: "バッグ" },
     { id: "hat",     name: "帽子" }
   ];
-  var outfit = { style: "pants", off: 0 };
+  var outfit = { style: "pants", off: 0, custom: {} };   // custom：アイテムごとに自分でえらんだ色（提案の何色目か）
   try { var so = JSON.parse(localStorage.getItem("novalis-color-outfit") || "{}"); if (so.style === "skirt") outfit.style = "skirt"; } catch (e) {}
   function saveOutfit() { try { localStorage.setItem("novalis-color-outfit", JSON.stringify({ style: outfit.style })); } catch (e) {} }
 
@@ -465,10 +480,13 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
   function renderOutfit() {
     var order = recommended();
     // 「色の当て方をかえる」を押すたびに、アイテムごとの色を1つずつずらす
-    var map = ROLES.map(function (r, i) { return order[(i + outfit.off) % order.length]; });
+    var map = ROLES.map(function (r, i) {
+      var mine = outfit.custom[r.id];
+      return mine != null && palette[mine] ? mine : order[(i + outfit.off) % order.length];
+    });
     var col = {}; ROLES.forEach(function (r, i) { col[r.id] = palette[map[i]].hex; });
     // 平置きコーデ：中央に上から トップス・ボトムス・靴、右に小物（差し色）を小さく
-    var item = function (id, d) { return '<path class="wear" d="' + d + '" fill="' + col[id] + '" filter="url(#lay)"/>'; };
+    var item = function (id, d) { return '<path class="wear" data-role="' + id + '" d="' + d + '" fill="' + col[id] + '" filter="url(#lay)"/>'; };
     var det = function (id, d, k) { return '<path d="' + d + '" fill="none" stroke="' + shade(col[id], k || .18) + '" stroke-width="1.6" stroke-linecap="round"/>'; };
     var g = '<defs><filter id="lay" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".14"/></filter></defs>';
 
@@ -495,17 +513,20 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     // 小物（差し色）：帽子とバッグを右に小さく
     g += '<text x="246" y="34" text-anchor="middle" font-size="9" letter-spacing="1.5" fill="#9a958c" style="font-family:var(--font-en);font-weight:700">ACCENT</text>';
     g += item("hat", "M222 86 Q222 58 246 58 Q270 58 270 86 Z");
-    g += '<ellipse class="wear" cx="246" cy="88" rx="34" ry="8" fill="' + col.hat + '" filter="url(#lay)"/>';
+    g += '<ellipse class="wear" data-role="hat" cx="246" cy="88" rx="34" ry="8" fill="' + col.hat + '" filter="url(#lay)"/>';
     g += det("hat", "M224 78 H268", .2);
     g += '<path d="M232 226 Q246 196 260 226" fill="none" stroke="' + shade(col.bag, .25) + '" stroke-width="4" stroke-linecap="round"/>';
     g += item("bag", "M220 226 H272 L268 270 Q246 274 224 270 Z");
     $("outfit").innerHTML = g;
 
-    // どの服がどの色か（タップでコピー）
+    // アイテムごとに、提案の5色から色をえらぶ
     $("outfit-list").innerHTML = ROLES.map(function (r, i) {
-      var c = palette[map[i]];
-      return '<li><button type="button" data-i="' + map[i] + '"><i style="background:' + c.hex + '"></i>' + r.name + "<small>" + c.hex + "</small></button></li>";
+      return '<li class="pick" id="pick-' + r.id + '"><span class="pick-name">' + r.name + "<small>" + palette[map[i]].hex + '</small></span><span class="pick-sw" role="group" aria-label="' + r.name + 'の色">' +
+        palette.map(function (c, j) {
+          return '<button type="button" data-role="' + r.id + '" data-j="' + j + '" style="background:' + c.hex + ";--ck:" + readableOn(c.hex) + '" aria-pressed="' + (j === map[i]) + '" aria-label="' + r.name + "を " + c.hex + ' にする"></button>';
+        }).join("") + "</span></li>";
     }).join("");
+    $("reset-pick").classList.toggle("hidden", Object.keys(outfit.custom).length === 0);
 
     // コーデのコツ（面積の割合の目安）
     var base = col.bottoms, main = col.tops, acc = col.bag;
@@ -518,14 +539,24 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     var b = e.target.closest("button"); if (!b) return;
     outfit.style = b.dataset.v; saveOutfit(); renderOutfit();
   });
-  $("rotate").addEventListener("click", function () { outfit.off = (outfit.off + 1) % ROLES.length; renderOutfit(); });
+  $("rotate").addEventListener("click", function () { outfit.off = (outfit.off + 1) % ROLES.length; outfit.custom = {}; renderOutfit(); });
+  $("reset-pick").addEventListener("click", function () { outfit.custom = {}; outfit.off = 0; renderOutfit(); });
   $("outfit-list").addEventListener("click", function (e) {
-    var b = e.target.closest("[data-i]"); if (!b) return;
-    var c = palette[+b.dataset.i]; copy(c.hex, c.hex);
+    var b = e.target.closest("button[data-role]"); if (!b) return;
+    outfit.custom[b.dataset.role] = +b.dataset.j;
+    renderOutfit();
+  });
+  // 平置きの絵のアイテムをタップすると、そのアイテムの色えらびの行を光らせる
+  $("outfit").addEventListener("click", function (e) {
+    var p = e.target.closest("[data-role]"); if (!p) return;
+    var row = $("pick-" + p.dataset.role); if (!row) return;
+    row.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    row.classList.remove("flash"); void row.offsetWidth; row.classList.add("flash");
+    setTimeout(function () { row.classList.remove("flash"); }, 1400);
   });
 
   /* ---------- 入力 ---------- */
-  function setBase(hex) { state.base = hex.toUpperCase(); outfit.off = 0; save(); build(); }
+  function setBase(hex) { state.base = hex.toUpperCase(); outfit.off = 0; outfit.custom = {}; save(); build(); }
   $("picker").addEventListener("input", function () { setBase($("picker").value); });
   $("hex").addEventListener("input", function () {
     var v = $("hex").value.trim().replace(/^＃/, "#").replace(/[０-９ａ-ｆＡ-Ｆ]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
@@ -543,7 +574,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
   $("harmony").innerHTML = HARMONIES.map(function (h) { return '<button type="button" data-h="' + h.id + '">' + h.name.replace("\n", "<br>") + "</button>"; }).join("");
   $("harmony").addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return;
-    state.harmony = b.dataset.h; outfit.off = 0; save(); build();
+    state.harmony = b.dataset.h; outfit.off = 0; outfit.custom = {}; save(); build();
   });
   $("moods").innerHTML = MOODS.map(function (m, i) { return '<button type="button" data-i="' + i + '"><i style="background:' + m.base + '"></i>' + m.name + "</button>"; }).join("");
   $("moods").addEventListener("click", function (e) {
