@@ -144,7 +144,7 @@ h2::before{content:counter(card,decimal-leading-zero) " /";display:block;margin-
 .stage-outfit svg{display:block;width:100%;max-width:320px;height:auto;margin:0 auto}
 .stage-outfit svg .wear{transition:fill .45s}
 .outfit-list{list-style:none;margin:16px 0 0;padding:0;border-top:1px solid var(--line)}
-.outfit-list li.pick{display:flex;align-items:center;gap:10px;padding:10px 4px 16px;border-bottom:1px solid var(--line);border-radius:var(--radius,8px);transition:background .3s,box-shadow .3s}
+.outfit-list li.pick{display:flex;align-items:center;gap:10px;padding:10px 4px 20px;border-bottom:1px solid var(--line);border-radius:var(--radius,8px);transition:background .3s,box-shadow .3s}
 .outfit-list li.pick.flash{background:rgba(var(--accent-rgb),.14);box-shadow:inset 0 0 0 1px var(--accent)}
 .pick-name{flex:0 0 74px;font-size:14px;font-weight:700;line-height:1.3}
 .pick-name small{display:block;font-family:var(--font-en);font-size:10px;color:var(--sub);letter-spacing:.02em}
@@ -153,7 +153,11 @@ h2::before{content:counter(card,decimal-leading-zero) " /";display:block;margin-
   box-shadow:0 0 0 1px rgba(255,255,255,.22);transition:transform .15s,box-shadow .2s}
 .pick-sw button:hover{transform:scale(1.08)}
 .pick-sw button.black{margin-left:4px;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
-.pick-sw button.black::before{content:"黒";position:absolute;left:0;right:0;bottom:-15px;font-size:9.5px;font-weight:700;color:var(--sub);text-align:center}
+.pick-sw button::before{content:attr(data-name);position:absolute;left:50%;bottom:-16px;transform:translateX(-50%);white-space:nowrap;font-size:9px;font-weight:700;letter-spacing:-.02em;color:var(--sub);text-align:center}
+.pick-sw button[aria-pressed="true"]::before{color:var(--ink)}
+.pick-name em{display:block;font-style:normal;font-size:12px;font-weight:700;color:var(--ink);opacity:.85}
+.sw .cname{display:block;margin-top:2px;font-size:12px;font-weight:700}
+.list .jname{display:inline-block;white-space:nowrap;margin-left:8px;font-family:var(--font);font-size:13px;font-weight:700;letter-spacing:0;color:var(--sub)}
 .pick-sw button.black[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ink)}
 .pick-sw button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ink)}
 .pick-sw button[aria-pressed="true"]::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;font-size:16px;font-weight:800;color:var(--ck,#111)}
@@ -272,7 +276,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
       <div class="stage-outfit"><svg id="outfit" viewBox="0 0 300 440" role="img" aria-label="提案の配色で組んだ平置きコーデの見本"></svg></div>
       <ul class="outfit-list" id="outfit-list" aria-label="アイテムごとの色"></ul>
       <div class="outfit-actions">
-        <span class="hint">アイテムごとに、提案の色と黒から好きな色をえらべます。</span>
+        <span class="hint">アイテムごとに、提案の色と黒から好きな色をえらべます。色の名前は、近い色の名前の目安です。</span>
         <button class="reset hidden" id="reset-pick" type="button">↺ おすすめに戻す</button>
       </div>
       <div class="tips" id="tips"></div>
@@ -340,6 +344,34 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
   }
   function readableOn(bg) { return contrast(bg, "#111111") >= contrast(bg, "#FFFFFF") ? "#111111" : "#FFFFFF"; }
 
+  /* ---------- 日本語の色名（いちばん近い名前を目安として表示） ---------- */
+  var COLOR_NAMES = [
+    ["白", "#FFFFFF"], ["生成り", "#F7F3E8"], ["クリーム", "#F7EBC3"], ["ベージュ", "#E8D3B0"], ["薄グレー", "#D3D3D3"],
+    ["グレー", "#9E9E9E"], ["墨色", "#3F3F3F"], ["黒", "#1A1A1A"],
+    ["赤", "#E60033"], ["コーラル", "#F2706B"], ["朱色", "#EB6101"], ["珊瑚色", "#F5B1AA"], ["桃色", "#F09199"], ["ピンク", "#F4A7B9"],
+    ["桜色", "#FCE4EC"], ["ローズ", "#DE5A8A"], ["えんじ", "#B94047"], ["ワイン", "#7B2D3F"],
+    ["オレンジ", "#F39800"], ["山吹色", "#F8B500"], ["からし色", "#C9A227"], ["黄色", "#FFE600"], ["レモン色", "#F3E651"],
+    ["黄緑", "#B8D200"], ["若草色", "#C3D825"], ["抹茶色", "#C5C56A"], ["オリーブ", "#7F7F3A"], ["カーキ", "#A49A6B"],
+    ["緑", "#3EB370"], ["深緑", "#005243"], ["ミント", "#A6E3C6"], ["青緑", "#00A497"],
+    ["水色", "#A6D6F2"], ["空色", "#66A9E2"], ["青", "#0068B7"], ["瑠璃色", "#1E50A2"], ["藍色", "#165E83"], ["紺", "#223A70"],
+    ["藤色", "#BBA8D8"], ["すみれ色", "#7058A3"], ["紫", "#884898"],
+    ["キャメル", "#C08A4E"], ["茶色", "#8F5A3C"], ["こげ茶", "#5B3A29"]
+  ];
+  function toLab(hex) {   // 人の目の感じ方に近い色の空間（CIELAB）
+    var c = hexToRgb(hex).map(function (v) { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+    var x = (c[0] * 0.4124 + c[1] * 0.3576 + c[2] * 0.1805) / 0.95047, y = c[0] * 0.2126 + c[1] * 0.7152 + c[2] * 0.0722, z = (c[0] * 0.0193 + c[1] * 0.1192 + c[2] * 0.9505) / 1.08883;
+    var f = function (t) { return t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116; };
+    return [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))];
+  }
+  var NAME_LABS = COLOR_NAMES.map(function (n) { return toLab(n[1]); });
+  var nameCache = {};
+  function colorName(hex) {
+    if (nameCache[hex]) return nameCache[hex];
+    var L = toLab(hex), best = 0, bd = Infinity;
+    NAME_LABS.forEach(function (m, i) { var d = Math.pow(L[0] - m[0], 2) + Math.pow(L[1] - m[1], 2) + Math.pow(L[2] - m[2], 2); if (d < bd) { bd = d; best = i; } });
+    return (nameCache[hex] = COLOR_NAMES[best][0]);
+  }
+
   /* ---------- 組み合わせ方 ---------- */
   // 各色は [色相のずれ, 彩度の倍率, 明るさ（絶対値。null ならもとの色の明るさ＋ずれ）, 明るさのずれ, 役割]
   var HARMONIES = [
@@ -401,13 +433,13 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     $("palette").innerHTML = palette.map(function (c, i) {
       var ink = readableOn(c.hex);
       return '<button class="sw" type="button" data-i="' + i + '" style="background:' + c.hex + ";color:" + ink + '" aria-label="' + c.hex + ' をコピー">' +
-        '<span class="role">' + c.role + "</span>" + c.hex + "</button>";
+        '<span class="role">' + c.role + '<b class="cname">' + colorName(c.hex) + "</b></span>" + c.hex + "</button>";
     }).join("");
     // 一覧（色コードとRGB）
     $("list").innerHTML = palette.map(function (c, i) {
       var rgb = hexToRgb(c.hex);
       return '<li><span class="chip" style="background:' + c.hex + '"></span><span class="meta"><span class="hexv">' + c.hex +
-        '</span><span class="rgb">' + c.role + "・RGB(" + rgb.join(", ") + ')</span></span><button class="copy" type="button" data-i="' + i + '">コピー</button></li>';
+        '<span class="jname">' + colorName(c.hex) + '</span></span><span class="rgb">' + c.role + "・RGB(" + rgb.join(", ") + ')</span></span><button class="copy" type="button" data-i="' + i + '">コピー</button></li>';
     }).join("");
 
     renderOutfit();
@@ -527,11 +559,13 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
 
     // アイテムごとに、提案の5色から色をえらぶ
     $("outfit-list").innerHTML = ROLES.map(function (r, i) {
-      return '<li class="pick" id="pick-' + r.id + '"><span class="pick-name">' + r.name + "<small>" + hexOf(map[i]) + '</small></span><span class="pick-sw" role="group" aria-label="' + r.name + 'の色">' +
+      var cur = hexOf(map[i]);
+      return '<li class="pick" id="pick-' + r.id + '"><span class="pick-name">' + r.name + '<em>' + colorName(cur) + "</em><small>" + cur + '</small></span><span class="pick-sw" role="group" aria-label="' + r.name + 'の色">' +
         palette.map(function (c, j) {
-          return '<button type="button" data-role="' + r.id + '" data-j="' + j + '" style="background:' + c.hex + ";--ck:" + readableOn(c.hex) + '" aria-pressed="' + (j === map[i]) + '" aria-label="' + r.name + "を " + c.hex + ' にする"></button>';
+          var nm = colorName(c.hex);
+          return '<button type="button" data-role="' + r.id + '" data-j="' + j + '" data-name="' + nm + '" style="background:' + c.hex + ";--ck:" + readableOn(c.hex) + '" aria-pressed="' + (j === map[i]) + '" aria-label="' + r.name + "を " + nm + "（" + c.hex + '）にする"></button>';
         }).join("") +
-        '<button type="button" class="black" data-role="' + r.id + '" data-j="black" style="background:' + BLACK + ';--ck:#fff" aria-pressed="' + (map[i] === "black") + '" aria-label="' + r.name + 'を 黒 にする"></button>' +
+        '<button type="button" class="black" data-role="' + r.id + '" data-j="black" data-name="黒" style="background:' + BLACK + ';--ck:#fff" aria-pressed="' + (map[i] === "black") + '" aria-label="' + r.name + 'を 黒 にする"></button>' +
         "</span></li>";
     }).join("");
     $("reset-pick").classList.toggle("hidden", Object.keys(outfit.custom).length === 0);
