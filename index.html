@@ -144,7 +144,7 @@ h2::before{content:counter(card,decimal-leading-zero) " /";display:block;margin-
 .stage-outfit svg{display:block;width:100%;max-width:320px;height:auto;margin:0 auto}
 .stage-outfit svg .wear{transition:fill .45s}
 .outfit-list{list-style:none;margin:16px 0 0;padding:0;border-top:1px solid var(--line)}
-.outfit-list li.pick{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);border-radius:var(--radius,8px);transition:background .3s,box-shadow .3s}
+.outfit-list li.pick{display:flex;align-items:center;gap:10px;padding:10px 4px 16px;border-bottom:1px solid var(--line);border-radius:var(--radius,8px);transition:background .3s,box-shadow .3s}
 .outfit-list li.pick.flash{background:rgba(var(--accent-rgb),.14);box-shadow:inset 0 0 0 1px var(--accent)}
 .pick-name{flex:0 0 74px;font-size:14px;font-weight:700;line-height:1.3}
 .pick-name small{display:block;font-family:var(--font-en);font-size:10px;color:var(--sub);letter-spacing:.02em}
@@ -152,6 +152,9 @@ h2::before{content:counter(card,decimal-leading-zero) " /";display:block;margin-
 .pick-sw button{position:relative;flex:0 0 auto;width:38px;height:38px;padding:0;border:0;border-radius:50%;cursor:pointer;
   box-shadow:0 0 0 1px rgba(255,255,255,.22);transition:transform .15s,box-shadow .2s}
 .pick-sw button:hover{transform:scale(1.08)}
+.pick-sw button.black{margin-left:4px;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
+.pick-sw button.black::before{content:"黒";position:absolute;left:0;right:0;bottom:-15px;font-size:9.5px;font-weight:700;color:var(--sub);text-align:center}
+.pick-sw button.black[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ink)}
 .pick-sw button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ink)}
 .pick-sw button[aria-pressed="true"]::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;font-size:16px;font-weight:800;color:var(--ck,#111)}
 .outfit-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
@@ -198,7 +201,8 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
 @media (max-width:400px){
   .outfit-tools{flex-direction:column}
   .pick-name{flex-basis:62px;font-size:13px}
-  .pick-sw button{width:34px;height:34px}
+  .pick-sw button{width:32px;height:32px}
+  .pick-sw{gap:4px}
   .hex{font-size:16px;letter-spacing:0;padding:0 10px}
   .dice{font-size:12px;padding:0 10px}
   .base-row{gap:8px}
@@ -268,7 +272,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
       <div class="stage-outfit"><svg id="outfit" viewBox="0 0 300 440" role="img" aria-label="提案の配色で組んだ平置きコーデの見本"></svg></div>
       <ul class="outfit-list" id="outfit-list" aria-label="アイテムごとの色"></ul>
       <div class="outfit-actions">
-        <span class="hint">アイテムごとに、提案の色から好きな色をえらべます。</span>
+        <span class="hint">アイテムごとに、提案の色と黒から好きな色をえらべます。</span>
         <button class="reset hidden" id="reset-pick" type="button">↺ おすすめに戻す</button>
       </div>
       <div class="tips" id="tips"></div>
@@ -452,6 +456,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     { id: "bag",     name: "バッグ" },
     { id: "hat",     name: "帽子" }
   ];
+  var BLACK = "#1A1A1A";   // どのアイテムにも選べる、固定の黒
   var outfit = { style: "pants", off: 0, custom: {} };   // custom：アイテムごとに自分でえらんだ色（提案の何色目か）
   try { var so = JSON.parse(localStorage.getItem("novalis-color-outfit") || "{}"); if (so.style === "skirt") outfit.style = "skirt"; } catch (e) {}
   function saveOutfit() { try { localStorage.setItem("novalis-color-outfit", JSON.stringify({ style: outfit.style })); } catch (e) {} }
@@ -482,9 +487,10 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     // 「色の当て方をかえる」を押すたびに、アイテムごとの色を1つずつずらす
     var map = ROLES.map(function (r, i) {
       var mine = outfit.custom[r.id];
-      return mine != null && palette[mine] ? mine : order[(i + outfit.off) % order.length];
+      return mine === "black" || (mine != null && palette[mine]) ? mine : order[(i + outfit.off) % order.length];
     });
-    var col = {}; ROLES.forEach(function (r, i) { col[r.id] = palette[map[i]].hex; });
+    var hexOf = function (m) { return m === "black" ? BLACK : palette[m].hex; };
+    var col = {}; ROLES.forEach(function (r, i) { col[r.id] = hexOf(map[i]); });
     // 平置きコーデ：中央に上から トップス・ボトムス・靴、右に小物（差し色）を小さく
     var item = function (id, d) { return '<path class="wear" data-role="' + id + '" d="' + d + '" fill="' + col[id] + '" filter="url(#lay)"/>'; };
     var det = function (id, d, k) { return '<path d="' + d + '" fill="none" stroke="' + shade(col[id], k || .18) + '" stroke-width="1.6" stroke-linecap="round"/>'; };
@@ -521,10 +527,12 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
 
     // アイテムごとに、提案の5色から色をえらぶ
     $("outfit-list").innerHTML = ROLES.map(function (r, i) {
-      return '<li class="pick" id="pick-' + r.id + '"><span class="pick-name">' + r.name + "<small>" + palette[map[i]].hex + '</small></span><span class="pick-sw" role="group" aria-label="' + r.name + 'の色">' +
+      return '<li class="pick" id="pick-' + r.id + '"><span class="pick-name">' + r.name + "<small>" + hexOf(map[i]) + '</small></span><span class="pick-sw" role="group" aria-label="' + r.name + 'の色">' +
         palette.map(function (c, j) {
           return '<button type="button" data-role="' + r.id + '" data-j="' + j + '" style="background:' + c.hex + ";--ck:" + readableOn(c.hex) + '" aria-pressed="' + (j === map[i]) + '" aria-label="' + r.name + "を " + c.hex + ' にする"></button>';
-        }).join("") + "</span></li>";
+        }).join("") +
+        '<button type="button" class="black" data-role="' + r.id + '" data-j="black" style="background:' + BLACK + ';--ck:#fff" aria-pressed="' + (map[i] === "black") + '" aria-label="' + r.name + 'を 黒 にする"></button>' +
+        "</span></li>";
     }).join("");
     $("reset-pick").classList.toggle("hidden", Object.keys(outfit.custom).length === 0);
 
@@ -543,7 +551,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
   $("reset-pick").addEventListener("click", function () { outfit.custom = {}; outfit.off = 0; renderOutfit(); });
   $("outfit-list").addEventListener("click", function (e) {
     var b = e.target.closest("button[data-role]"); if (!b) return;
-    outfit.custom[b.dataset.role] = +b.dataset.j;
+    outfit.custom[b.dataset.role] = b.dataset.j === "black" ? "black" : +b.dataset.j;
     renderOutfit();
   });
   // 平置きの絵のアイテムをタップすると、そのアイテムの色えらびの行を光らせる
