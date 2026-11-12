@@ -467,41 +467,37 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     // 「色の当て方をかえる」を押すたびに、服ごとの色を1つずつずらす
     var map = ROLES.map(function (r, i) { return order[(i + outfit.off) % order.length]; });
     var col = {}; ROLES.forEach(function (r, i) { col[r.id] = palette[map[i]].hex; });
-    var skin = "#E6CBB3", hair = "#2A221F", line = 'stroke="rgba(0,0,0,.14)" stroke-width="1" stroke-linejoin="round"';
+    // シンプルなファッションイラスト風（約11頭身・線は最小限のフラットな塗り）
+    var skin = "#E8CFB8", hair = "#2A221F", line = 'stroke="rgba(0,0,0,.1)" stroke-width="1" stroke-linejoin="round"';
     var w = function (id, d) { return '<path class="wear" d="' + d + '" fill="' + col[id] + '" ' + line + "/>"; };
     var g = "";
-    // 背景（スタジオ風）と床の影
-    g += '<rect width="300" height="440" fill="transparent"/><ellipse cx="150" cy="416" rx="44" ry="5" fill="rgba(0,0,0,.13)"/>';
-    // 首・頭・髪（すっきりしたボブ）。ファッションイラストのような細身・長い脚の体型
-    g += '<path d="M145 66 H155 L156 86 H144 Z" fill="' + skin + '"/>';
-    g += '<ellipse cx="150" cy="50" rx="15" ry="18" fill="' + skin + '"/>';
-    g += '<path d="M133 54 Q131 26 150 26 Q169 26 167 54 L168 68 Q161 64 161 46 Q150 40 139 46 Q139 64 132 68 Z" fill="' + hair + '"/>';
+    g += '<ellipse cx="150" cy="416" rx="40" ry="4.5" fill="rgba(0,0,0,.12)"/>';
+    // 首・頭・髪
+    g += '<path d="M146 58 H154 L155 84 H145 Z" fill="' + skin + '"/>';
+    g += '<ellipse cx="150" cy="46" rx="12.5" ry="15.5" fill="' + skin + '"/>';
+    g += '<path d="M136 48 Q135 27 150 27 Q165 27 164 48 L165 61 Q159 58 159 42 Q150 36 141 42 Q141 58 135 61 Z" fill="' + hair + '"/>';
     if (outfit.style === "pants") {
-      // 脚が長く見える、細身のストレートパンツ
-      g += w("bottoms", "M133 196 H167 L171 214 L167 406 H154 L150 238 L146 406 H133 L129 214 Z");
+      g += w("bottoms", "M135 194 H165 L169 212 L165 406 H153 L150 236 L147 406 H135 L131 212 Z");
     } else {
-      // 細い脚と、ミモレ丈の台形スカート
-      g += '<path d="M137 290 H147 L146 406 H140 Z" fill="' + skin + '"/><path d="M153 290 H163 L160 406 H154 Z" fill="' + skin + '"/>';
-      g += w("bottoms", "M135 196 H165 L182 312 Q150 318 118 312 Z");
+      g += '<path d="M139 290 H148 L147 406 H141 Z" fill="' + skin + '"/><path d="M152 290 H161 L159 406 H153 Z" fill="' + skin + '"/>';
+      g += w("bottoms", "M137 194 H163 L178 304 Q150 310 122 304 Z");
     }
     // 靴（先のとがったパンプス）
-    g += w("shoes", "M133 403 H148 L149 412 L125 413 Q124 406 133 403 Z");
-    g += w("shoes", "M152 403 H167 Q176 406 175 413 L151 412 Z");
-    // トップス（中に着ているもの・ウエストに向かって細く）
-    g += w("tops", "M131 86 H169 L165 198 H135 Z");
-    g += '<path d="M143 86 L150 98 L157 86" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="1"/>';
-    // アウター（体に沿った細身のジャケット）と、細い袖
-    g += w("outer", "M113 92 L104 96 L95 210 L104 212 L115 124 Z");
-    g += w("outer", "M187 92 L196 96 L205 210 L196 212 L185 124 Z");
-    g += w("outer", "M141 86 L113 92 L110 232 L147 232 L143 150 Z");
-    g += w("outer", "M159 86 L187 92 L190 232 L153 232 L157 150 Z");
-    g += '<path d="M141 86 L135 128 L144 156" fill="none" stroke="' + shade(col.outer, .28) + '" stroke-width="1.5"/>';
-    g += '<path d="M159 86 L165 128 L156 156" fill="none" stroke="' + shade(col.outer, .28) + '" stroke-width="1.5"/>';
+    g += w("shoes", "M135 403 H148 L149 412 L127 413 Q126 406 135 403 Z");
+    g += w("shoes", "M152 403 H165 Q174 406 173 413 L151 412 Z");
+    // トップス
+    g += w("tops", "M134 84 H166 L163 196 H137 Z");
+    // アウター（細身のジャケット）と細い袖
+    g += w("outer", "M117 90 L110 94 L101 206 L109 208 L118 122 Z");
+    g += w("outer", "M183 90 L190 94 L199 206 L191 208 L182 122 Z");
+    g += w("outer", "M143 84 L117 90 L114 230 L147 230 L144 150 Z");
+    g += w("outer", "M157 84 L183 90 L186 230 L153 230 L156 150 Z");
+    g += '<path d="M143 84 L139 124 L145 150 M157 84 L161 124 L155 150" fill="none" stroke="' + shade(col.outer, .25) + '" stroke-width="1.2"/>';
     // 手
-    g += '<ellipse cx="99" cy="216" rx="5" ry="6.5" fill="' + skin + '"/><ellipse cx="201" cy="216" rx="5" ry="6.5" fill="' + skin + '"/>';
-    // バッグ（小ぶりのハンドバッグを右手に）
-    g += '<path d="M197 214 Q206 198 215 214" fill="none" stroke="' + shade(col.bag, .3) + '" stroke-width="2.5" stroke-linecap="round"/>';
-    g += w("bag", "M192 214 H220 L218 238 H194 Z");
+    g += '<ellipse cx="105" cy="212" rx="4" ry="5.5" fill="' + skin + '"/><ellipse cx="195" cy="212" rx="4" ry="5.5" fill="' + skin + '"/>';
+    // バッグ（小ぶりのハンドバッグ）
+    g += '<path d="M191 210 Q199 196 207 210" fill="none" stroke="' + shade(col.bag, .3) + '" stroke-width="2" stroke-linecap="round"/>';
+    g += w("bag", "M187 210 H211 L209 232 H189 Z");
     $("outfit").innerHTML = g;
 
     // どの服がどの色か（タップでコピー）
