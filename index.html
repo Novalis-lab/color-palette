@@ -203,7 +203,7 @@ h2::before{content:counter(card,decimal-leading-zero) " /";display:block;margin-
 .cp-sw button[aria-pressed="true"] .dot{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--ink)}
 .cp-sw button[aria-pressed="true"] .dot::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;font-size:18px;font-weight:800;color:var(--ck)}
 .cp-sw .nm{white-space:nowrap;letter-spacing:-.02em}
-.stage-outfit svg .wear.sel{stroke:rgba(255,255,255,.6);stroke-width:1.2;stroke-dasharray:3 3}   /* えらんでいるアイテム：控えめな点線 */
+.stage-outfit svg .wear.sel{stroke:rgba(255,255,255,.75);stroke-width:1.2}   /* えらんでいるアイテム：細い実線の縁取り＋浮き上がる影（#lift） */
 .outfit-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
 .outfit-actions .hint{font-size:12.5px;color:var(--sub)}
 .reset{min-height:38px;padding:0 12px;border:1px solid var(--line);border-radius:var(--radius,8px);background:transparent;color:var(--sub);font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
@@ -589,9 +589,11 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     var hexOf = function (m) { return m === "black" ? BLACK : palette[m].hex; };
     var col = {}; ROLES.forEach(function (r, i) { col[r.id] = hexOf(map[i]); });
     // 平置きコーデ：中央に上から トップス・ボトムス・靴、右に小物（差し色）を小さく
-    var item = function (id, d) { return '<path class="wear' + (id === outfit.sel ? " sel" : "") + '" data-role="' + id + '" d="' + d + '" fill="' + col[id] + '" filter="url(#lay)"/>'; };
+    var item = function (id, d) { var on = id === outfit.sel; return '<path class="wear' + (on ? " sel" : "") + '" data-role="' + id + '" d="' + d + '" fill="' + col[id] + '" filter="url(#' + (on ? "lift" : "lay") + ')"/>'; };
     var det = function (id, d, k) { return '<path d="' + d + '" fill="none" stroke="' + shade(col[id], k || .18) + '" stroke-width="1.6" stroke-linecap="round"/>'; };
-    var g = '<defs><filter id="lay" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".28"/></filter></defs>';
+    var g = '<defs><filter id="lay" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".28"/></filter>' +
+      // 選んでいるアイテム：影を大きく濃くして、少し浮き上がって見えるように
+      '<filter id="lift" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="9" stdDeviation="7" flood-color="#000" flood-opacity=".45"/></filter></defs>';
 
     // トップス（Tシャツ）
     g += item("tops", "M88 34 L64 44 L38 74 L58 96 L70 84 L70 156 Q115 162 160 156 L160 84 L172 96 L192 74 L166 44 L142 34 Q115 52 88 34 Z");
@@ -616,7 +618,7 @@ footer{margin-top:32px;padding:16px;border:1px solid var(--line);border-radius:v
     // 小物（差し色）：帽子とバッグを右に小さく
     g += '<text x="246" y="34" text-anchor="middle" font-size="9" letter-spacing="1.5" fill="' + (outfit.bg === "greige" ? "#6f685d" : "rgba(255,255,255,.6)") + '" style="font-family:var(--font-en);font-weight:700">ACCENT</text>';
     g += item("hat", "M222 86 Q222 58 246 58 Q270 58 270 86 Z");
-    g += '<ellipse class="wear' + (outfit.sel === "hat" ? " sel" : "") + '" data-role="hat" cx="246" cy="88" rx="34" ry="8" fill="' + col.hat + '" filter="url(#lay)"/>';
+    g += '<ellipse class="wear' + (outfit.sel === "hat" ? " sel" : "") + '" data-role="hat" cx="246" cy="88" rx="34" ry="8" fill="' + col.hat + '" filter="url(#' + (outfit.sel === "hat" ? "lift" : "lay") + ')"/>';
     g += det("hat", "M224 78 H268", .2);
     g += '<path d="M232 226 Q246 196 260 226" fill="none" stroke="' + shade(col.bag, .25) + '" stroke-width="4" stroke-linecap="round"/>';
     g += item("bag", "M220 226 H272 L268 270 Q246 274 224 270 Z");
